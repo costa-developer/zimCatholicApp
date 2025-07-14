@@ -1,0 +1,165 @@
+import { useRouter } from 'expo-router';
+import React from 'react';
+import {
+  FlatList,
+  Image,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+
+const hymnCategories = [
+  { id: 'all', title: 'All Hymns', description: 'Browse all available hymns alphabetically.', image: require('../../assets/images/a.jpg') },
+  { id: 'advent', title: 'Advent Hymns', description: 'Songs for the season of preparation for Christ’s coming.', image: require('../../assets/images/a.jpg') },
+  { id: 'christmas', title: 'Christmas Hymns', description: 'Hymns celebrating the birth of Jesus and His manifestation.', image: require('../../assets/images/a.jpg') },
+  { id: 'ordinary-time', title: 'Ordinary Time Hymns', description: 'General hymns for worship outside of major liturgical seasons.', image: require('../../assets/images/a.jpg') },
+  { id: 'lent', title: 'Lenten Hymns', description: 'Songs for the penitential season leading to Easter.', image: require('../../assets/images/a.jpg') },
+  { id: 'easter', title: 'Easter Season Hymns', description: 'Joyful hymns celebrating the Resurrection of Christ.', image: require('../../assets/images/a.jpg') },
+];
+
+export default function HymnsScreen() {
+  const router = useRouter();
+
+  const onCategoryPress = (categoryId: string) => {
+    router.push(`/hymns/${categoryId}`);
+  };
+
+  return (
+  <View style={styles.container}>
+    {/* Hero Section */}
+    <ImageBackground
+      source={require('../../assets/images/pastor.jpg')}
+      style={styles.hero}
+      imageStyle={styles.heroImage}
+    >
+      {/* <View style={styles.heroTopRow}>
+        <Text style={styles.backArrow}>←</Text>
+        <Image
+          source={require('../../assets/images/b.jpg')}
+          style={styles.profileIcon}
+        />
+      </View> */}
+      <Text style={styles.heroText}>Hymn Categories</Text>
+      <Text style={styles.subText}>Select a category to begin</Text>
+    </ImageBackground>
+
+    {/* White Rounded Section with Category List */}
+    <View style={styles.whiteSection}>
+      <FlatList
+        data={hymnCategories}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => onCategoryPress(item.id)}
+            activeOpacity={0.85}
+            style={styles.cardContainer}
+          >
+            <Image source={item.image} style={styles.cardImage} />
+            <View style={styles.cardTextContainer}>
+              <Text style={styles.cardTitle}>{item.title}</Text>
+              <Text style={styles.cardDescription}>{item.description}</Text>
+            </View>
+          </TouchableOpacity>
+        )}
+        contentContainerStyle={styles.listContent}
+      />
+    </View>
+  </View>
+);
+
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#02070f',
+  },
+  hero: {
+    width: '100%',
+    height: 200,
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    justifyContent: 'center',
+  },
+  heroImage: {
+    resizeMode: 'cover',
+  },
+  heroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backArrow: {
+    fontSize: 22,
+    color: '#fff',
+  },
+  profileIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#fff',
+  },
+  heroText: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#ffffff',
+    marginTop: 20,
+  },
+  subText: {
+    fontSize: 14,
+    color: '#e0e0e0',
+    marginTop: 4,
+  },
+
+  whiteSection: {
+    flex: 1,
+    backgroundColor: '#0a0f1a', 
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    marginTop: -20,
+    paddingTop: 30,
+  },
+
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+  },
+
+  cardContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#111827',
+    borderRadius: 16,
+    marginBottom: 16,
+    elevation: 2,
+    overflow: 'hidden',
+    height: 200,
+  },
+
+  cardImage: {
+    width: 150,
+    height: '100%',
+    resizeMode: 'cover',
+    borderRadius: 16,
+  },
+
+  cardTextContainer: {
+    flex: 1,
+    padding: 12,
+    justifyContent: 'center',
+  },
+
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
+
+  cardDescription: {
+    fontSize: 13,
+    color: '#cccccc',
+    marginTop: 4,
+  },
+});

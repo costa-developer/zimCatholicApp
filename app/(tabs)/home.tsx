@@ -1,178 +1,314 @@
-import { BlurView } from 'expo-blur';
-import { useFocusEffect, useNavigation, useRouter } from 'expo-router';
-import { useCallback, useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import React from 'react';
 import {
+  Image,
   ImageBackground,
   SafeAreaView,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 
-const quickLinks = [
-  { id: 'hymns', title: 'Hymns', description: 'Explore and sing along', icon: '🎵' },
-  { id: 'prayers', title: 'Prayers', description: 'Your prayer guide in Shona', icon: '🙏' },
-  { id: 'readings', title: 'Daily Readings', description: 'Daily scripture and reflections', icon: '📖' },
-    { id: 'messages', title: 'Messages', description: 'Pastoral letters & leader messages', icon: '🎙️' },
-  { id: 'news', title: 'News', description: 'Catholic updates and stories', icon: '🗞️' },
-  { id: 'favorites', title: 'Favorites', description: 'Saved prayers & hymns', icon: '⭐' },
-  { id: 'search', title: 'Search', description: 'Find prayers, hymns & readings', icon: '🔍' },
-  { id: 'gallery', title: 'Gallery', description: 'View photos and videos', icon: '🖼️' },
-  { id: 'about', title: 'About', description: 'Learn about this app', icon: 'ℹ️' },
-  { id: 'contact', title: 'Contact', description: 'Get in touch', icon: '✉️' },
-];
+import { Inter_400Regular, Inter_600SemiBold } from '@expo-google-fonts/inter';
+import { Lora_700Bold } from '@expo-google-fonts/lora';
+import { useFonts } from 'expo-font';
 
-const thoughts = [
-  "At the end of the day, be proud of who you are.",
-  "Let your faith be bigger than your fears.",
-  "God’s grace is sufficient for you.",
-  "Faith does not make things easy, it makes them possible.",
+const coreActions = [
+  { icon: 'videocam-outline', label: 'Livestream', route: '/livestream' },
+  { icon: 'calendar-outline', label: 'Events', route: '/events' },
+  { icon: 'book-outline', label: 'Daily Reading', route: '/readings' },
+  { icon: 'chatbubbles-outline', label: 'Prayer Requests', route: '/prayer-requests' },
+  { icon: 'information-circle-outline', label: 'About Us', route: '/about' },
 ];
 
 export default function HomeScreen() {
   const router = useRouter();
-  const navigation = useNavigation();
 
-  const randomThought = useMemo(() => {
-    return thoughts[Math.floor(Math.random() * thoughts.length)];
-  }, []);
+  const [fontsLoaded] = useFonts({
+    Lora_700Bold,
+    Inter_400Regular,
+    Inter_600SemiBold,
+  });
 
-  useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions({ tabBarStyle: { display: 'none' } });
-      return () => navigation.setOptions({ tabBarStyle: undefined });
-    }, [navigation])
-  );
+  if (!fontsLoaded) {
+    return <Text style={{ fontSize: 16, textAlign: 'center' }}>Loading fonts...</Text>;
+  }
+
+  const handlePress = (route: string) => {
+    router.push(route);
+  };
 
   return (
-    <ImageBackground
-      source={require('../../assets/images/bac.jpg')}
-      style={{ flex: 1 }}
-      resizeMode="cover"
-    >
-      <BlurView intensity={40} style={{ flex: 1 }}>
-        <SafeAreaView style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={styles.contentContainer}>
-            {/* Top Bar */}
-            <View style={styles.topBar}>
-              <Text style={styles.appName}>ZimRoma</Text>
-              <TouchableOpacity activeOpacity={0.7}>
-                <Text style={styles.shareIcon}>🔗</Text>
-              </TouchableOpacity>
-            </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.background} />
 
-            {/* Thought of the Day */}
-            <View style={styles.thoughtContainer}>
-              <Text style={styles.thoughtTitle}>Thought of the Day</Text>
-              <Text style={styles.thoughtText}>{randomThought}</Text>
-            </View>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.churchName}>Christ Sanctuary</Text>
+          <Text style={styles.welcomeMessage}>Welcome Home.</Text>
+        </View>
+        <TouchableOpacity onPress={() => handlePress('/profile')}>
+          <Image
+            source={require('../../assets/images/a.jpg')}
+            style={styles.profileImage}
+          />
+        </TouchableOpacity>
+      </View>
 
-            {/* Grid Menu */}
-            <View style={styles.cardsContainer}>
-              {quickLinks.map(link => (
-                <TouchableOpacity
-                  key={link.id}
-                  style={styles.card}
-                  activeOpacity={0.7}
-                  onPress={() => router.push(`/${link.id}`)}
-                >
-                  <Text style={styles.cardIcon}>{link.icon}</Text>
-                  <Text style={styles.cardTitle}>{link.title}</Text>
-                  <Text style={styles.cardDescription}>{link.description}</Text>
-                </TouchableOpacity>
-              ))}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Today's Inspiration</Text>
+        <TouchableOpacity
+          style={styles.featuredCardTouchable}
+          onPress={() => handlePress('/sermons/great-is-thy-faithfulness')}
+        >
+          <ImageBackground
+            source={require('../../assets/images/a.jpg')}
+            style={styles.featuredImage}
+            imageStyle={styles.featuredImageStyle}
+          >
+            <View style={styles.featuredOverlay}>
+              <Text style={styles.featuredTag}>HYMN SPOTLIGHT</Text>
+              <Text style={styles.featuredTitle}>"Great Is Thy Faithfulness"</Text>
+              <Text style={styles.featuredSubtitle}>English • 4 Verses • Hymn #245</Text>
+              <View style={styles.playButton}>
+                <Ionicons name="play-circle" size={40} color={COLORS.secondary} />
+              </View>
             </View>
+          </ImageBackground>
+        </TouchableOpacity>
 
-            {/* Footer */}
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>© 2025 Zim Catholic App</Text>
-              <Text style={styles.footerText}>Version 1.0.0</Text>
-            </View>
-          </ScrollView>
-        </SafeAreaView>
-      </BlurView>
-    </ImageBackground>
+        <Text style={styles.sectionTitle}>Quick Access</Text>
+        <View style={styles.coreActionsGrid}>
+          {coreActions.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.actionButton}
+              onPress={() => handlePress(item.route)}
+            >
+              <Ionicons name={item.icon as any} size={30} color={COLORS.primary} />
+              <Text style={styles.actionLabel}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>From Our Community</Text>
+        <TouchableOpacity
+          style={styles.parishCard}
+          onPress={() => handlePress('/daily-gospel')}
+        >
+          <Image
+            source={require('../../assets/images/a.jpg')}
+            style={styles.parishImage}
+          />
+          <View style={styles.parishInfo}>
+            <Text style={styles.parishTag}>DAILY GOSPEL</Text>
+            <Text style={styles.parishTitle}>Matthew 5:1–12</Text>
+            <Text style={styles.parishDetails}>Beatitudes • Reflection • 3 min read</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.parishCard}
+          onPress={() => handlePress('/events')}
+        >
+          <Image
+            source={require('../../assets/images/a.jpg')}
+            style={styles.parishImage}
+          />
+          <View style={styles.parishInfo}>
+            <Text style={styles.parishTag}>UPCOMING EVENT</Text>
+            <Text style={styles.parishTitle}>Community Potluck & Fellowship</Text>
+            <Text style={styles.parishDetails}>Sat, July 20th • 6:00 PM • Church Hall</Text>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
+const COLORS = {
+  background: '#02070f',
+  surface: '#0a0f1a',
+  cardBackground: '#111827',
+  primary: '#F4A261',
+  secondary: '#FFD700',
+  headingText: '#ffffff',
+  secondaryText: '#cccccc',
+  border: '#1f2937',
+  overlay: 'rgba(0, 0, 0, 0.6)',
+};
+
 const styles = StyleSheet.create({
-  contentContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 30,
-    paddingBottom: 40,
+  container: {
+    flex: 1,
+    backgroundColor: COLORS.background,
   },
-  topBar: {
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 18,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  churchName: {
+    fontSize: 15,
+    fontFamily: 'Inter_400Regular',
+    color: COLORS.secondaryText,
+    marginBottom: 2,
+  },
+  welcomeMessage: {
+    fontSize: 26,
+    fontFamily: 'Lora_700Bold',
+    color: COLORS.headingText,
+  },
+  profileImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: COLORS.secondary,
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 100,
+  },
+  sectionTitle: {
+    fontSize: 22,
+    fontFamily: 'Lora_700Bold',
+    color: COLORS.headingText,
+    marginTop: 26,
+    marginBottom: 14,
+  },
+  featuredCardTouchable: {
+    borderRadius: 20,
+    overflow: 'hidden',
+    backgroundColor: COLORS.cardBackground,
+    shadowColor: COLORS.secondary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 12,
     marginBottom: 20,
   },
-  appName: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    color: '#fff',
+  featuredImage: {
+    height: 250,
+    justifyContent: 'flex-end',
   },
-  shareIcon: {
-    fontSize: 20,
-    color: '#fff',
+  featuredImageStyle: {
+    borderRadius: 20,
   },
-  thoughtContainer: {
-    marginBottom: 30,
+  featuredOverlay: {
+    backgroundColor: COLORS.overlay,
+    padding: 20,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    minHeight: 120,
+    position: 'relative',
   },
-  thoughtTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#fbc02d',
-    marginBottom: 8,
+  featuredTag: {
+    color: COLORS.primary,
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    marginBottom: 6,
   },
-  thoughtText: {
+  featuredTitle: {
+    color: COLORS.headingText,
+    fontSize: 24,
+    fontFamily: 'Lora_700Bold',
+    marginBottom: 4,
+  },
+  featuredSubtitle: {
+    color: COLORS.secondaryText,
     fontSize: 14,
-    color: '#fff',
+    fontFamily: 'Inter_400Regular',
   },
-  cardsContainer: {
+  playButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+  },
+  coreActionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginBottom: 20,
   },
-  card: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    borderRadius: 14,
-    width: '47%',
-    paddingVertical: 24,
-    paddingHorizontal: 10,
+  actionButton: {
+    width: '48%',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 18,
+    paddingVertical: 18,
     alignItems: 'center',
     marginBottom: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 8,
   },
-  cardIcon: {
-    fontSize: 32,
-    marginBottom: 10,
-    color: '#fbc02d',
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 4,
-  },
-  cardDescription: {
-    fontSize: 12,
-    color: '#fbc02d',
+  actionLabel: {
+    color: COLORS.headingText,
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    marginTop: 8,
     textAlign: 'center',
   },
-  footer: {
-    marginTop: 30,
+  parishCard: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.cardBackground,
+    borderRadius: 18,
+    padding: 15,
     alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 5,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  footerText: {
+  parishImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 15,
+    marginRight: 15,
+  },
+  parishInfo: {
+    flex: 1,
+  },
+  parishTag: {
+    color: COLORS.primary,
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 2,
+  },
+  parishTitle: {
+    fontSize: 18,
+    fontFamily: 'Lora_700Bold',
+    color: COLORS.headingText,
+    marginBottom: 2,
+  },
+  parishDetails: {
+    color: COLORS.secondaryText,
     fontSize: 13,
-    color: '#ddd',
-    marginVertical: 2,
+    fontFamily: 'Inter_400Regular',
   },
 });

@@ -1,74 +1,85 @@
-// app/(tabs)/_layout.tsx
-import { HapticTab } from '@/components/HapticTab';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Ionicons as IoniconSet } from '@expo/vector-icons';
+import type { IconProps } from '@expo/vector-icons/build/createIconSet';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform, Text } from 'react-native';
+import { Platform } from 'react-native';
+
+const Ionicons = IoniconSet as unknown as React.ComponentType<IconProps>;
+
+const COLORS = {
+  background: '#02070f',
+  card: '#111827',
+  active: '#F4A261',
+  inactive: '#888888',
+  shadow: '#000000',
+};
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   return (
-<Tabs
-  screenOptions={{
-    tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-    headerShown: false,
-    tabBarButton: HapticTab,
-    tabBarStyle: Platform.select({
-      ios: {
-        position: 'absolute',
-        backgroundColor: 'black',
-        borderTopWidth: 0,
-      },
-      android: {
-        backgroundColor: 'black',
-        borderTopWidth: 0,
-      },
-    }),
-  }}
->
-
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: COLORS.card,
+          borderTopWidth: 0,
+          borderTopLeftRadius: 28,
+          borderTopRightRadius: 28,
+          height: 70,
+          paddingBottom: Platform.OS === 'ios' ? 25 : 15,
+          paddingTop: 10,
+          position: 'absolute',
+          elevation: 12,
+          shadowColor: COLORS.shadow,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 10,
+        },
+        tabBarActiveTintColor: COLORS.active,
+        tabBarInactiveTintColor: COLORS.inactive,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          marginTop: 4,
+        },
+        tabBarIconStyle: {
+          marginTop: 4,
+        },
+      }}
+    >
       <Tabs.Screen
         name="home"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={26} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="hymns"
+        name="sermons"
         options={{
-          title: 'Hymns',
-          tabBarIcon: () => <Text>🎵</Text>,
+          title: 'Sermons',
+          tabBarIcon: ({ color }) => <Ionicons name="mic-outline" size={26} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="prayers"
+        name="prayer"
         options={{
-          title: 'Prayers',
-          tabBarIcon: () => <Text>🙏</Text>,
+          title: 'Prayer',
+          tabBarIcon: ({ color }) => <Ionicons name="heart-outline" size={26} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="search"
+        name="give"
         options={{
-          title: 'Search',
-          tabBarIcon: () => <Text>🔍</Text>,
+          title: 'Give',
+          tabBarIcon: ({ color }) => <Ionicons name="wallet-outline" size={26} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="favorites"
+        name="more"
         options={{
-          title: 'Favorites',
-          tabBarIcon: () => <Text>❤️</Text>,
-        }}
-      />
-      <Tabs.Screen
-        name="readings"
-        options={{
-          title: 'Daily Readings',
-          tabBarIcon: () => <Text>📖</Text>,
+          title: 'More',
+          tabBarIcon: ({ color }) => (
+            <Ionicons name="ellipsis-horizontal-circle-outline" size={26} color={color} />
+          ),
         }}
       />
     </Tabs>

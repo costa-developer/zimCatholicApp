@@ -1,65 +1,104 @@
-import { useRouter } from 'expo-router';
+import { hymns } from '@/data/hymns';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import {
-    Dimensions,
-    FlatList,
-    ImageBackground,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-const CARD_WIDTH = (Dimensions.get('window').width - 48) / 2;
-
-const hymnCategories = [
-  { id: 'entrance', title: 'Entrance Hymns', image: require('../../assets/images/a.jpg') },
-  { id: 'communion', title: 'Communion Hymns', image: require('../../assets/images/b.jpg') },
-  { id: 'recessional', title: 'Recessional Hymns', image: require('../../assets/images/c.jpg') },
-  { id: 'offertory', title: 'Offertory Hymns', image: require('../../assets/images/d.jpg') },
-  { id: 'thanksgiving', title: 'Thanksgiving Hymns', image: require('../../assets/images/e.jpg') },
-  { id: 'marian', title: 'Marian Hymns', image: require('../../assets/images/f.jpg') },
-  { id: 'adoration', title: 'Adoration Hymns', image: require('../../assets/images/j.jpg') },
-  { id: 'holyspirit', title: 'Holy Spirit Hymns', image: require('../../assets/images/k.jpg') },
+// Replace seasons with categories here
+const categories = [
+  { id: 'all', label: 'Show All' },
+  { id: 'advent', label: 'Advent' },
+  { id: 'ordinary', label: 'Ordinary Time' },
+  { id: 'easter', label: 'Easter' },
+  { id: 'christmas', label: 'Christmas' },
 ];
 
-
-export default function HymnsScreen() {
+export default function HymnsListScreen() {
+  const { category: categoryFromParams } = useLocalSearchParams();
   const router = useRouter();
 
-  const onCategoryPress = (categoryId: string) => {
-    router.push(`/hymns/${categoryId}`);
-  };
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(categoryFromParams || 'all');
+  const [filteredHymns, setFilteredHymns] = useState([]);
+
+  useEffect(() => {
+    // Filter hymns by selectedCategory and searchQuery
+    const filtered = hymns.filter((h) => {
+      const categoryMatch = selectedCategory === 'all' || h.category === selectedCategory;
+      const searchMatch = h.title.toLowerCase().includes(searchQuery.toLowerCase());
+      return categoryMatch && searchMatch;
+    });
+    setFilteredHymns(filtered);
+  }, [searchQuery, selectedCategory]);
+
+  // If categoryFromParams changes, update selectedCategory
+  useEffect(() => {
+    setSelectedCategory(categoryFromParams || 'all');
+  }, [categoryFromParams]);
 
   return (
     <View style={styles.container}>
-      {/* Hero Section */}
-      <ImageBackground
-        source={require('../../assets/images/pastor.jpg')}
-        style={styles.hero}
-        imageStyle={{ opacity: 0.9 }}
+      <Text style={styles.heading}>{selectedCategory.toUpperCase()} HYMNS</Text>
+
+      <TextInput
+        placeholder="Search hymns..."
+        placeholderTextColor="#666"
+        style={styles.searchInput}
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+      />
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryFilter}
       >
-        <Text style={styles.heroText}>HYMNS</Text>
-      </ImageBackground>
-
-      <View style={{ height: 24 }} />
-
-      {/* Categories Grid */}
-      <FlatList
-        data={hymnCategories}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        columnWrapperStyle={styles.row}
-        renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => onCategoryPress(item.id)} activeOpacity={0.85}>
-            <ImageBackground
-              source={item.image}
-              style={styles.card}
-              imageStyle={{ borderRadius: 12 }}
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat.id}
+            style={[
+              styles.categoryButton,
+              selectedCategory === cat.id && styles.categoryButtonActive,
+            ]}
+            onPress={() => setSelectedCategory(cat.id)}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === cat.id && styles.categoryTextActive,
+              ]}
+              numberOfLines={1}
+              ellipsizeMode='tail'
             >
-              <View style={styles.overlay}>
-                <Text style={styles.cardTitle}>{item.title}</Text>
+              {cat.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      <FlatList
+        data={filteredHymns}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <TouchableOpacity
+            onPress={() => router.push(`/hymns/${item.category}/${hymns.indexOf(item)}`)}
+            activeOpacity={0.85}
+            style={styles.itemTouchable}
+          >
+            <View style={styles.itemContainer}>
+              <View style={styles.circle}>
+                <Text style={styles.number}>{index + 1}</Text>
               </View>
-            </ImageBackground>
+              <Text style={styles.itemText}>{item.title}</Text>
+            </View>
           </TouchableOpacity>
         )}
         contentContainerStyle={styles.listContent}
@@ -71,49 +110,100 @@ export default function HymnsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
-  },
-  hero: {
-    width: '100%',
-    height: 180,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  heroText: {
-    color: '#fff',
-    fontSize: 36,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    textShadowColor: 'rgba(0,0,0,0.6)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 6,
-  },
-  row: {
-    justifyContent: 'space-between',
+    backgroundColor: '#02070f',
+    paddingTop: 20,
     paddingHorizontal: 16,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#ffffff',
     marginBottom: 16,
-  },
-  card: {
-    width: CARD_WIDTH,
-    height: 120,
-    justifyContent: 'flex-end',
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: '#333',
-  },
-  overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  cardTitle: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
     textAlign: 'center',
+    letterSpacing: 0.5,
+  },
+  searchInput: {
+    height: 48,
+    backgroundColor: '#0d1117',
+    borderColor: '#2e3a45',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    marginBottom: 20,
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  categoryFilter: {
+    flexDirection: 'row',
+    marginBottom: 20,
     paddingHorizontal: 4,
   },
+  categoryButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,    
+    borderRadius: 20,
+    backgroundColor: '#0d1117',
+    borderWidth: 1,
+    borderColor: '#2e3a45',
+    marginRight: 10,
+    marginBottom: 4,
+    justifyContent: 'center', 
+    alignItems: 'center',      
+    minHeight: 40,            
+    minWidth: 100,              
+  },
+  categoryButtonActive: {
+    backgroundColor: '#F4A261',
+    borderColor: '#F4A261',
+  },
+  categoryText: {
+    color: '#cccccc',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  categoryTextActive: {
+    color: '#02070f',
+    fontWeight: 'bold',
+  },
+  itemTouchable: {
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  itemContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0d1117',
+    padding: 14,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  circle: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#F4A261',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  number: {
+    color: '#02070f',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  itemText: {
+    fontSize: 16,
+    color: '#ffffff',
+    flexShrink: 1,
+    fontWeight: '500',
+    lineHeight: 22,
+  },
   listContent: {
-    paddingBottom: 30,
+    paddingBottom: 40,
   },
 });

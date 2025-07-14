@@ -8,7 +8,7 @@ export default function SplashScreen() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/home'); // this will load your tab layout (index.tsx)
+      router.replace('/home');
     }, 2000);
     return () => clearTimeout(timer);
   }, []);
