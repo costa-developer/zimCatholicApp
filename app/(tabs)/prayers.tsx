@@ -1,18 +1,13 @@
 // app/(tabs)/prayers.tsx
+import { prayerCategories } from '@/data/prayersData';
 import { useRouter } from 'expo-router';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const prayerCategories = [
-  { id: 'daily', title: 'Daily Prayers' },
-  { id: 'mass', title: 'Mass Prayers' },
-  { id: 'rosary', title: 'Rosary Prayers' },
-];
 
 export default function PrayersScreen() {
   const router = useRouter();
 
-  const onCategoryPress = (categoryId: string) => {
-    router.push(`/prayers/${categoryId}`);
+  const onPress = (id: string) => {
+    router.push(`/prayers/${id}`);  // pushes main category id
   };
 
   return (
@@ -22,7 +17,7 @@ export default function PrayersScreen() {
         data={prayerCategories}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity onPress={() => onCategoryPress(item.id)} style={styles.item}>
+          <TouchableOpacity onPress={() => onPress(item.id)} style={styles.item}>
             <Text style={styles.title}>{item.title}</Text>
           </TouchableOpacity>
         )}
@@ -32,8 +27,8 @@ export default function PrayersScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: '#fff', padding: 20 },
   header: { fontSize: 28, fontWeight: 'bold', marginBottom: 20 },
-  item: { padding: 15, backgroundColor: '#eee', borderRadius: 8, marginBottom: 12 },
+  item: { backgroundColor: '#eee', padding: 15, borderRadius: 8, marginBottom: 12 },
   title: { fontSize: 18 },
 });

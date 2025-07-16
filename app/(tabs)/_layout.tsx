@@ -1,10 +1,7 @@
-import { Ionicons as IoniconSet } from '@expo/vector-icons';
-import type { IconProps } from '@expo/vector-icons/build/createIconSet';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-
-const Ionicons = IoniconSet as unknown as React.ComponentType<IconProps>;
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const COLORS = {
   background: '#02070f',
@@ -49,28 +46,36 @@ export default function TabLayout() {
         name="home"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <Ionicons name="home-outline" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="home-outline" size={26} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="sermons"
         options={{
           title: 'Sermons',
-          tabBarIcon: ({ color }) => <Ionicons name="mic-outline" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="microphone-outline" size={26} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="prayer"
         options={{
           title: 'Prayer',
-          tabBarIcon: ({ color }) => <Ionicons name="heart-outline" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="hands-pray" size={26} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="give"
         options={{
           title: 'Give',
-          tabBarIcon: ({ color }) => <Ionicons name="wallet-outline" size={26} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="wallet-outline" size={26} color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -78,7 +83,7 @@ export default function TabLayout() {
         options={{
           title: 'More',
           tabBarIcon: ({ color }) => (
-            <Ionicons name="ellipsis-horizontal-circle-outline" size={26} color={color} />
+            <MaterialCommunityIcons name="dots-horizontal-circle-outline" size={26} color={color} />
           ),
         }}
       />
