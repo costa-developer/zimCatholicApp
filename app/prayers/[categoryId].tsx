@@ -1,0 +1,46 @@
+import { prayerCategories } from '@/data/prayersData';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+export default function SubCategoriesScreen() {
+  const router = useRouter();
+  const { categoryId } = useLocalSearchParams();
+
+  const category = prayerCategories.find(cat => cat.id === categoryId);
+
+  if (!category) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.header}>Category Not Found</Text>
+      </View>
+    );
+  }
+
+  const onPress = (subId: string) => {
+    router.push(`/prayers/${categoryId}/${subId}`);
+  };
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.header}>{category.title}</Text>
+      <FlatList
+        data={category.subcategories}
+        keyExtractor={item => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity onPress={() => onPress(item.id)} style={styles.item}>
+            <Text style={styles.title}>{item.title}</Text>
+          </TouchableOpacity>
+        )}
+        ListEmptyComponent={<Text style={styles.noSub}>No subcategories available.</Text>}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, padding: 20, backgroundColor: '#fff' },
+  header: { fontSize: 26, fontWeight: 'bold', marginBottom: 20 },
+  item: { backgroundColor: '#eee', padding: 15, borderRadius: 8, marginBottom: 12 },
+  title: { fontSize: 18 },
+  noSub: { fontSize: 16, color: 'gray', textAlign: 'center', marginTop: 40 },
+});
