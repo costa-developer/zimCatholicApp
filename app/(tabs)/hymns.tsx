@@ -1,8 +1,11 @@
+// Enhanced: Responsive + Light/Dark Theme + Font Scaling (with react-native-responsive-fontsize)
+
 import { hymns } from '@/data/hymns';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
+  Dimensions,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -12,10 +15,13 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from 'react-native';
+import { RFValue } from 'react-native-responsive-fontsize';
 
-// Constants
-const HEADER_HEIGHT = 140; // Adjust for your header total height (title + search + categories)
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const scale = SCREEN_WIDTH / 375;
+const HEADER_HEIGHT = 140 * scale;
 
 const categories = [
   { id: 'all', label: 'Show All' },
@@ -25,19 +31,39 @@ const categories = [
   { id: 'christmas', label: 'Christmas' },
 ];
 
+const LIGHT_COLORS = {
+  background: '#fffaf4',
+  card: '#ffffff',
+  secondcolor: '#f0e2d0',
+  text: '#2b2b2b',
+  subtitle: '#c59152',
+  active: '#FFD700',
+  inactive: '#999',
+};
+
+const DARK_COLORS = {
+  background: '#1C1C1C',
+  card: '#321a0c',
+  secondcolor: '#492916',
+  text: '#fff3e0',
+  subtitle: '#c59152',
+  active: '#FFD700',
+  inactive: '#999',
+};
+
 export default function HymnsListScreen() {
   const { category: categoryFromParams } = useLocalSearchParams();
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const COLORS = colorScheme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(categoryFromParams || 'all');
   const [filteredHymns, setFilteredHymns] = useState([]);
 
-  // Animated values for header
   const headerTranslateY = useRef(new Animated.Value(0)).current;
   const scrollOffsetY = useRef(0);
 
-  // Filter hymns based on category and search
   useEffect(() => {
     const filtered = hymns.filter((h) => {
       const categoryMatch = selectedCategory === 'all' || h.category === selectedCategory;
@@ -47,25 +73,21 @@ export default function HymnsListScreen() {
     setFilteredHymns(filtered);
   }, [searchQuery, selectedCategory]);
 
-  // Update selectedCategory when URL param changes
   useEffect(() => {
     setSelectedCategory(categoryFromParams || 'all');
   }, [categoryFromParams]);
 
-  // Scroll event handler to show/hide header
   const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
     const diff = currentOffset - scrollOffsetY.current;
 
     if (diff > 0 && currentOffset > 0) {
-      // Scrolling down - hide header
       Animated.timing(headerTranslateY, {
         toValue: -HEADER_HEIGHT,
         duration: 200,
         useNativeDriver: true,
       }).start();
     } else if (diff < 0) {
-      // Scrolling up - show header
       Animated.timing(headerTranslateY, {
         toValue: 0,
         duration: 200,
@@ -77,20 +99,16 @@ export default function HymnsListScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Animated Header */}
+    <View style={[styles.container, { backgroundColor: COLORS.background }]}> 
       <Animated.View
-        style={[
-          styles.header,
-          { transform: [{ translateY: headerTranslateY }] },
-        ]}
+        style={[styles.header, { transform: [{ translateY: headerTranslateY }], backgroundColor: COLORS.card }]}
       >
-        <Text style={styles.heading}>{selectedCategory.toUpperCase()} HYMNS</Text>
+        <Text style={[styles.heading, { color: COLORS.text }]}>{selectedCategory.toUpperCase()} HYMNS</Text>
 
         <TextInput
           placeholder="Search hymns..."
-          placeholderTextColor="#c59152"
-          style={styles.searchInput}
+          placeholderTextColor={COLORS.subtitle}
+          style={[styles.searchInput, { backgroundColor: COLORS.secondcolor, color: COLORS.text }]}
           value={searchQuery}
           onChangeText={setSearchQuery}
           clearButtonMode="while-editing"
@@ -106,18 +124,16 @@ export default function HymnsListScreen() {
             return (
               <TouchableOpacity
                 key={cat.id}
-                style={[
-                  styles.categoryButton,
-                  isActive && styles.categoryButtonActive,
-                ]}
+                style={[styles.categoryButton, { backgroundColor: isActive ? COLORS.subtitle : COLORS.secondcolor }]}
                 onPress={() => setSelectedCategory(cat.id)}
                 activeOpacity={0.8}
               >
                 <Text
-                  style={[
-                    styles.categoryText,
-                    isActive && styles.categoryTextActive,
-                  ]}
+                  style={{
+                    color: isActive ? COLORS.card : COLORS.text,
+                    fontWeight: isActive ? 'bold' : '500',
+                    fontSize: RFValue(13, SCREEN_HEIGHT),
+                  }}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
@@ -129,25 +145,23 @@ export default function HymnsListScreen() {
         </ScrollView>
       </Animated.View>
 
-      {/* Hymns List */}
       <FlatList
         data={filteredHymns}
         keyExtractor={(_, index) => index.toString()}
         onScroll={onScroll}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: HEADER_HEIGHT + 10, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingTop: HEADER_HEIGHT + 10 * scale, paddingBottom: 40 * scale, paddingHorizontal: 16 }}
         renderItem={({ item, index }) => (
           <TouchableOpacity
-          onPress={() => router.push(`/hymns/${item.category}/${index}`)}
-
+            onPress={() => router.push(`/hymns/${item.category}/${index}`)}
             activeOpacity={0.85}
             style={styles.itemTouchable}
           >
-            <View style={styles.itemContainer}>
-              <View style={styles.circle}>
-                <Text style={styles.number}>{index + 1}</Text>
+            <View style={[styles.itemContainer, { backgroundColor: COLORS.secondcolor }]}>
+              <View style={[styles.circle, { backgroundColor: COLORS.subtitle }]}>
+                <Text style={[styles.number, { color: COLORS.card }]}>{index + 1}</Text>
               </View>
-              <Text style={styles.itemText}>{item.title}</Text>
+              <Text style={[styles.itemText, { color: COLORS.text }]}>{item.title}</Text>
             </View>
           </TouchableOpacity>
         )}
@@ -157,89 +171,59 @@ export default function HymnsListScreen() {
   );
 }
 
-const COLORS = {
-  background: '#1C1C1C',
-  card: '#321a0c',
-  secondcolor: '#492916',
-  text: '#fff3e0',
-  subtitle: '#c59152',
-  active: '#FFD700',
-  inactive: '#999',
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   header: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    backgroundColor: COLORS.card,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 0,
+    paddingTop: 16 * scale,
+    paddingBottom: 8 * scale,
     zIndex: 10,
     elevation: 10,
   },
   heading: {
-    color: COLORS.text,
-    fontSize: 24,
+    fontSize: RFValue(22, SCREEN_HEIGHT),
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 6 * scale,
     textAlign: 'center',
     letterSpacing: 1,
   },
   searchInput: {
-    height: 40,
-    backgroundColor: COLORS.secondcolor,
+    height: 40 * scale,
     borderRadius: 10,
     paddingHorizontal: 14,
-    color: COLORS.text,
-    fontSize: 16,
-    marginBottom: 10,
+    fontSize: RFValue(15, SCREEN_HEIGHT),
+    marginBottom: 10 * scale,
   },
   categoryFilter: {
     flexDirection: 'row',
-    marginBottom: 20,
+    flexWrap: 'nowrap',
+    marginBottom: 12 * scale,
+    paddingBottom: 6,
   },
   categoryButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: COLORS.secondcolor,
-    borderWidth: 1,
-    borderColor: COLORS.secondcolor,
+    paddingHorizontal: 12 * scale,
+    paddingVertical: 8 * scale,
+    borderRadius: 18,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 40,
-    minWidth: 100,
-  },
-  categoryButtonActive: {
-    backgroundColor: COLORS.subtitle,
-    borderColor: COLORS.subtitle,
-  },
-  categoryText: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  categoryTextActive: {
-    color: COLORS.card,
-    fontWeight: 'bold',
+    minHeight: 36 * scale,
+    minWidth: 90 * scale,
   },
   itemTouchable: {
     borderRadius: 10,
-    marginBottom: 12,
+    marginBottom: 12 * scale,
   },
   itemContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.secondcolor,
-    padding: 14,
+    padding: 12 * scale,
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -248,24 +232,21 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   circle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: COLORS.subtitle,
+    width: 30 * scale,
+    height: 30 * scale,
+    borderRadius: 15 * scale,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
   },
   number: {
-    color: COLORS.card,
     fontWeight: 'bold',
-    fontSize: 14,
+    fontSize: RFValue(13, SCREEN_HEIGHT),
   },
   itemText: {
-    fontSize: 16,
-    color: COLORS.text,
+    fontSize: RFValue(15, SCREEN_HEIGHT),
     flexShrink: 1,
     fontWeight: '500',
-    lineHeight: 22,
+    lineHeight: RFValue(20, SCREEN_HEIGHT),
   },
 });
