@@ -5,8 +5,9 @@ import { Asset } from 'expo-asset';
 import { useFonts } from 'expo-font';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   Image,
@@ -17,7 +18,8 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  useColorScheme,
 } from 'react-native';
 
 import { DMSerifDisplay_400Regular } from '@expo-google-fonts/dm-serif-display';
@@ -26,15 +28,18 @@ import { Manrope_400Regular } from '@expo-google-fonts/manrope';
 import { Colors } from '@/constants/Colors';
 import { STRINGS } from '@/constants/strings';
 
-const { height, width } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function HomeScreen() {
   const router = useRouter();
+  const theme = useColorScheme();
 
   const [fontsLoaded] = useFonts({
     DMSerifDisplay_400Regular,
     Manrope_400Regular,
   });
+
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadAssetsAsync() {
@@ -44,6 +49,7 @@ export default function HomeScreen() {
         require('../../assets/icons/bible.png'),
         require('../../assets/icons/mbira.png'),
       ]);
+      setIsLoading(false);
     }
     loadAssetsAsync();
   }, []);
@@ -53,12 +59,11 @@ export default function HomeScreen() {
     router.push(route);
   };
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={{ fontSize: 16, textAlign: 'center', marginTop: 40 }}>
-          Loading holy fonts...
-        </Text>
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={Colors.light.secondcolor} />
+        <Text style={{ marginTop: 10 }}>Loading holy fonts and assets...</Text>
       </SafeAreaView>
     );
   }
@@ -72,18 +77,16 @@ export default function HomeScreen() {
         imageStyle={{ resizeMode: 'cover' }}
       >
         <View style={styles.innerWrapper}>
-          {/* Header */}
           <View style={styles.header}>
             <Image source={require('../../assets/icons/praying.png')} style={styles.logoImage} />
             <Text style={styles.logoText}>Zimbabwe</Text>
             <Text style={styles.logoText}>Catholic</Text>
             <Text style={styles.subtitle}>{STRINGS.peaceBeWithYou}</Text>
-            <Text style={styles.dailyVerse}>
+            <Text style={styles.dailyVerse} accessibilityLabel="Daily Bible verse">
               “Blessed are the peacemakers, for they shall be called children of God.” - Matt 5:9
             </Text>
           </View>
 
-          {/* Cards */}
           <View style={styles.cardWrapper}>
             <MenuCard
               icon={require('../../assets/icons/mbira.png')}
@@ -105,22 +108,11 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* Nav Bar */}
           <View style={styles.navBar}>
-            <TouchableOpacity onPress={() => handlePress('/home')}>
-              <View style={styles.navItemActive}>
-                <Ionicons name="home" size={24} color={Colors.light.active} />
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handlePress('/favorites')}>
-              <Ionicons name="heart-outline" size={24} color={Colors.light.inactive} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handlePress('/calendar')}>
-              <Ionicons name="calendar-outline" size={24} color={Colors.light.inactive} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handlePress('/profile')}>
-              <Ionicons name="person-outline" size={24} color={Colors.light.inactive} />
-            </TouchableOpacity>
+            <NavIcon icon="home" label="Home" active onPress={() => handlePress('/home')} />
+            <NavIcon icon="heart-outline" label="Favorites" onPress={() => handlePress('/favorites')} />
+            <NavIcon icon="calendar-outline" label="Calendar" onPress={() => handlePress('/calendar')} />
+            <NavIcon icon="person-outline" label="Profile" onPress={() => handlePress('/profile')} />
           </View>
         </View>
       </ImageBackground>
@@ -151,6 +143,7 @@ function MenuCard({ icon, title, subtitle, onPress }) {
       onPressOut={handlePressOut}
       onPress={onPress}
       accessibilityLabel={`${title} section. ${subtitle}`}
+      accessibilityRole="button"
       style={{ width: '100%', alignItems: 'center' }}
     >
       <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
@@ -165,6 +158,21 @@ function MenuCard({ icon, title, subtitle, onPress }) {
         </View>
       </Animated.View>
     </Pressable>
+  );
+}
+
+function NavIcon({ icon, label, onPress, active = false }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
+      <View style={active ? styles.navItemActive : styles.navItem}>
+        <Ionicons name={icon} size={22} color={active ? Colors.light.active : Colors.light.inactive} />
+        <Text style={styles.navLabel}>{label}</Text>
+      </View>
+    </TouchableOpacity>
   );
 }
 
@@ -270,12 +278,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     paddingVertical: 12,
     backgroundColor: Colors.light.card,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderRadius: 20,
+  },
+  navItem: {
+    alignItems: 'center',
   },
   navItemActive: {
+    alignItems: 'center',
     backgroundColor: Colors.light.secondcolor,
     padding: 6,
     borderRadius: 50,
+  },
+  navLabel: {
+    fontSize: 10,
+    color: Colors.light.text,
+    marginTop: 2,
   },
 });

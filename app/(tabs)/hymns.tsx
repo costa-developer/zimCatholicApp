@@ -1,14 +1,15 @@
-// Enhanced: Responsive + Light/Dark Theme + Font Scaling (with react-native-responsive-fontsize)
-
-import { hymns } from '@/data/hymns';
+import { getAllHymnsQuery } from '@/lib/queries';
+import { sanity } from '@/lib/sanity';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
   FlatList,
+  KeyboardAvoidingView,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -59,19 +60,34 @@ export default function HymnsListScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(categoryFromParams || 'all');
+  const [allHymns, setAllHymns] = useState([]);
   const [filteredHymns, setFilteredHymns] = useState([]);
 
   const headerTranslateY = useRef(new Animated.Value(0)).current;
   const scrollOffsetY = useRef(0);
 
   useEffect(() => {
-    const filtered = hymns.filter((h) => {
-      const categoryMatch = selectedCategory === 'all' || h.category === selectedCategory;
+    const fetchHymns = async () => {
+      try {
+        const data = await sanity.fetch(getAllHymnsQuery);
+        console.log('Fetched hymns:', data);
+        setAllHymns(data);
+      } catch (err) {
+        console.error('Failed to fetch hymns:', err);
+      }
+    };
+
+    fetchHymns();
+  }, []);
+
+  useEffect(() => {
+    const filtered = allHymns.filter((h) => {
+      const categoryMatch = selectedCategory === 'all' || h.category?.includes(selectedCategory);
       const searchMatch = h.title.toLowerCase().includes(searchQuery.toLowerCase());
       return categoryMatch && searchMatch;
     });
     setFilteredHymns(filtered);
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, allHymns]);
 
   useEffect(() => {
     setSelectedCategory(categoryFromParams || 'all');
@@ -99,75 +115,96 @@ export default function HymnsListScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: COLORS.background }]}> 
-      <Animated.View
-        style={[styles.header, { transform: [{ translateY: headerTranslateY }], backgroundColor: COLORS.card }]}
-      >
-        <Text style={[styles.heading, { color: COLORS.text }]}>{selectedCategory.toUpperCase()} HYMNS</Text>
-
-        <TextInput
-          placeholder="Search hymns..."
-          placeholderTextColor={COLORS.subtitle}
-          style={[styles.searchInput, { backgroundColor: COLORS.secondcolor, color: COLORS.text }]}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          clearButtonMode="while-editing"
-        />
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryFilter}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <View style={[styles.container, { backgroundColor: COLORS.background }]}>
+        <Animated.View
+          style={[
+            styles.header,
+            { transform: [{ translateY: headerTranslateY }], backgroundColor: COLORS.card },
+          ]}
         >
-          {categories.map((cat) => {
-            const isActive = selectedCategory === cat.id;
-            return (
-              <TouchableOpacity
-                key={cat.id}
-                style={[styles.categoryButton, { backgroundColor: isActive ? COLORS.subtitle : COLORS.secondcolor }]}
-                onPress={() => setSelectedCategory(cat.id)}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={{
-                    color: isActive ? COLORS.card : COLORS.text,
-                    fontWeight: isActive ? 'bold' : '500',
-                    fontSize: RFValue(13, SCREEN_HEIGHT),
-                  }}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </Animated.View>
+          <Text style={[styles.heading, { color: COLORS.text }]}>
+            {selectedCategory.toUpperCase()} HYMNS
+          </Text>
 
-      <FlatList
-        data={filteredHymns}
-        keyExtractor={(_, index) => index.toString()}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: HEADER_HEIGHT + 10 * scale, paddingBottom: 40 * scale, paddingHorizontal: 16 }}
-        renderItem={({ item, index }) => (
-          <TouchableOpacity
-            onPress={() => router.push(`/hymns/${item.category}/${index}`)}
-            activeOpacity={0.85}
-            style={styles.itemTouchable}
+          <TextInput
+            placeholder="Search hymns..."
+            placeholderTextColor={COLORS.subtitle}
+            style={[styles.searchInput, { backgroundColor: COLORS.secondcolor, color: COLORS.text }]}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            clearButtonMode="while-editing"
+          />
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryFilter}
           >
-            <View style={[styles.itemContainer, { backgroundColor: COLORS.secondcolor }]}>
-              <View style={[styles.circle, { backgroundColor: COLORS.subtitle }]}>
-                <Text style={[styles.number, { color: COLORS.card }]}>{index + 1}</Text>
+            {categories.map((cat) => {
+              const isActive = selectedCategory === cat.id;
+              return (
+                <TouchableOpacity
+                  key={cat.id}
+                  style={[
+                    styles.categoryButton,
+                    {
+                      backgroundColor: isActive ? COLORS.subtitle : COLORS.secondcolor,
+                      borderWidth: isActive ? 1 : 0,
+                      borderColor: COLORS.active,
+                    },
+                  ]}
+                  onPress={() => setSelectedCategory(cat.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={{
+                      color: isActive ? COLORS.card : COLORS.text,
+                      fontWeight: isActive ? 'bold' : '500',
+                      fontSize: RFValue(13, SCREEN_HEIGHT),
+                    }}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </Animated.View>
+
+        <FlatList
+          data={filteredHymns}
+          keyExtractor={(item) => item._id}
+          onScroll={onScroll}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingTop: HEADER_HEIGHT + 10 * scale,
+            paddingBottom: 40 * scale,
+            paddingHorizontal: 16,
+          }}
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+              onPress={() => router.push(`/hymns/${item.category[0]}/${index}`)}
+              activeOpacity={0.85}
+              style={styles.itemTouchable}
+            >
+              <View style={[styles.itemContainer, { backgroundColor: COLORS.secondcolor }]}>
+                <View style={[styles.circle, { backgroundColor: COLORS.subtitle }]}>
+                  <Text style={[styles.number, { color: COLORS.card }]}>{index + 1}</Text>
+                </View>
+                <Text style={[styles.itemText, { color: COLORS.text }]}>{item.title}</Text>
               </View>
-              <Text style={[styles.itemText, { color: COLORS.text }]}>{item.title}</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-        showsVerticalScrollIndicator={false}
-      />
-    </View>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -181,10 +218,11 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-    paddingTop: 16 * scale,
-    paddingBottom: 8 * scale,
+    paddingTop: 18 * scale,
+    paddingBottom: 10 * scale,
     zIndex: 10,
     elevation: 10,
+    borderBottomWidth: 0.3,
   },
   heading: {
     fontSize: RFValue(22, SCREEN_HEIGHT),
@@ -194,7 +232,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   searchInput: {
-    height: 40 * scale,
+    height: 42 * scale,
     borderRadius: 10,
     paddingHorizontal: 14,
     fontSize: RFValue(15, SCREEN_HEIGHT),
@@ -202,18 +240,16 @@ const styles = StyleSheet.create({
   },
   categoryFilter: {
     flexDirection: 'row',
-    flexWrap: 'nowrap',
-    marginBottom: 12 * scale,
     paddingBottom: 6,
   },
   categoryButton: {
-    paddingHorizontal: 12 * scale,
+    paddingHorizontal: 14 * scale,
     paddingVertical: 8 * scale,
     borderRadius: 18,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 36 * scale,
+    minHeight: 38 * scale,
     minWidth: 90 * scale,
   },
   itemTouchable: {
@@ -227,9 +263,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
   },
   circle: {
     width: 30 * scale,
