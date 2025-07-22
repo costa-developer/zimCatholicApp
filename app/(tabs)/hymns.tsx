@@ -1,5 +1,5 @@
-import { getAllHymnsQuery } from '@/lib/queries';
-import { sanity } from '@/lib/sanity';
+import { client } from '@/sanity';
+import { Hymn } from '@/types/hymn';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -60,8 +60,8 @@ export default function HymnsListScreen() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(categoryFromParams || 'all');
-  const [allHymns, setAllHymns] = useState([]);
-  const [filteredHymns, setFilteredHymns] = useState([]);
+  const [allHymns, setAllHymns] = useState<Hymn[]>([]);
+  const [filteredHymns, setFilteredHymns] = useState<Hymn[]>([]);
 
   const headerTranslateY = useRef(new Animated.Value(0)).current;
   const scrollOffsetY = useRef(0);
@@ -69,11 +69,16 @@ export default function HymnsListScreen() {
   useEffect(() => {
     const fetchHymns = async () => {
       try {
-        const data = await sanity.fetch(getAllHymnsQuery);
-        console.log('Fetched hymns:', data);
+        const data: Hymn[] = await client.fetch(`*[_type == "hymn"]{
+          _id,
+          title,
+          author,
+          lyrics,
+          category
+        }`);
         setAllHymns(data);
       } catch (err) {
-        console.error('Failed to fetch hymns:', err);
+        console.error('Error fetching hymns:', err);
       }
     };
 
@@ -82,7 +87,8 @@ export default function HymnsListScreen() {
 
   useEffect(() => {
     const filtered = allHymns.filter((h) => {
-      const categoryMatch = selectedCategory === 'all' || h.category?.includes(selectedCategory);
+      const categoryMatch =
+        selectedCategory === 'all' || h.category.includes(selectedCategory);
       const searchMatch = h.title.toLowerCase().includes(searchQuery.toLowerCase());
       return categoryMatch && searchMatch;
     });
@@ -190,7 +196,7 @@ export default function HymnsListScreen() {
           }}
           renderItem={({ item, index }) => (
             <TouchableOpacity
-              onPress={() => router.push(`/hymns/${item.category[0]}/${index}`)}
+              onPress={() => router.push(`/hymns/${item.category}/${index}`)}
               activeOpacity={0.85}
               style={styles.itemTouchable}
             >

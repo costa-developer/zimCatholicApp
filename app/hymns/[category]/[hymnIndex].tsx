@@ -1,41 +1,68 @@
-import { hymns } from '@/data/hymns';
+// app/hymns/[id].tsx
+import { sanity } from '@/lib/sanity';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  Platform,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Platform, ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-// Your project colors
 const COLORS = {
   background: '#1C1C1C',
   card: '#321a0c',
-  icon: '#1f1007',
-  secondcolor: '#492916',
   text: '#fff3e0',
   subtitle: '#c59152',
+  secondcolor: '#492916',
   active: '#FFD700',
-  inactive: '#999',
 };
 
 export default function HymnDetailScreen() {
-  const { category, hymnIndex } = useLocalSearchParams();
+  const { category, hymnIndex } = useLocalSearchParams<{ category: string; hymnIndex: string }>();
   const router = useRouter();
 
-  const index = Number(hymnIndex);
-  const filteredHymns = hymns.filter((h) => h.category.includes(category));
-  const hymn = filteredHymns[index];
+  const [hymn, setHymn] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!category || hymnIndex === undefined) return;
+
+    const query = `*[_type == "hymn" && "${category}" in category] | order(title asc) {
+      _id,
+      title,
+      author,
+      lyrics,
+      category
+    }`;
+
+    sanity
+      .fetch(query)
+      .then((data) => {
+        const index = Number(hymnIndex);
+        if (index < 0 || index >= data.length) {
+          setHymn(null);
+        } else {
+          setHymn(data[index]);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching hymns:', err);
+        setHymn(null);
+      })
+      .finally(() => setLoading(false));
+  }, [category, hymnIndex]);
+
   const handleGoBack = () => router.back();
+
+  if (loading) {
+    return (
+      <View style={[styles.screenContainer, { backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: COLORS.text }}>Loading...</Text>
+      </View>
+    );
+  }
 
   if (!hymn) {
     return (
-      <View style={[styles.errorContainer, { backgroundColor: COLORS.background }]}>
-        <Text style={[styles.errorTitle, { color: COLORS.active }]}>Hymn not found.</Text>
+      <View style={[styles.screenContainer, { backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: COLORS.active, fontSize: 24, fontWeight: 'bold' }}>Hymn not found.</Text>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: COLORS.secondcolor, borderColor: COLORS.active }]}
           onPress={handleGoBack}
@@ -44,7 +71,7 @@ export default function HymnDetailScreen() {
           accessibilityLabel="Back to Hymns"
         >
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
-          <Text style={[styles.backButtonText, { color: COLORS.text }]}>Back to Hymns</Text>
+          <Text style={{ color: COLORS.text, marginLeft: 10 }}>Back to Hymns</Text>
         </TouchableOpacity>
       </View>
     );
@@ -52,7 +79,6 @@ export default function HymnDetailScreen() {
 
   return (
     <View style={[styles.screenContainer, { backgroundColor: COLORS.background }]}>
-      {/* Fixed Back Button */}
       <TouchableOpacity
         style={[styles.backButtonTop, { backgroundColor: COLORS.secondcolor, shadowColor: COLORS.secondcolor }]}
         onPress={handleGoBack}
