@@ -384,9 +384,6 @@ const styles = StyleSheet.create({
     height: 42 * scale,
     flex: 1,
     fontSize: RFValue(15, SCREEN_HEIGHT),
-    borderRadius: 10,
-    padding: 5,
-    alignItems: 'center',
   },
   clearText: {
     fontSize: RFValue(16, SCREEN_HEIGHT),

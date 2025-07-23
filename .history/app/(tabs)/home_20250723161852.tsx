@@ -76,7 +76,6 @@ export default function HomeScreen() {
         style={styles.background}
         imageStyle={{ resizeMode: 'cover' }}
       >
-        <View style={styles.overlay} />
         <View style={styles.innerWrapper}>
           <View style={styles.header}>
             <Image source={require('../../assets/icons/praying.png')} style={styles.logoImage} />
@@ -187,18 +186,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject, 
-    backgroundColor: 'rgba(50, 26, 12, 0.5)', 
-    zIndex: 1,
-  },
   innerWrapper: {
     flex: 1,
     justifyContent: 'space-between',
     paddingTop: 40,
     paddingBottom: 10,
     paddingHorizontal: 20,
-    zIndex: 2, 
   },
   header: {
     alignItems: 'center',

@@ -1,16 +1,13 @@
 import { client } from '@/sanity';
 import { Hymn } from '@/types/hymn';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import debounce from 'lodash.debounce';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Animated,
   Dimensions,
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
-  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -53,7 +50,7 @@ const DARK_COLORS = {
   inactive: '#999',
 };
 
-// List item with press opacity feedback and author subtitle
+// ✅ Extracted list item component to safely use hooks
 const HymnListItem = ({ item, index, COLORS, onPress }) => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -67,41 +64,17 @@ const HymnListItem = ({ item, index, COLORS, onPress }) => {
   }, []);
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      style={styles.itemTouchable}
-      activeOpacity={0.6}
-      accessibilityRole="button"
-      accessibilityLabel={`Hymn titled ${item.title}, by ${item.author || 'unknown author'}`}
-    >
+    <TouchableOpacity onPress={onPress} style={styles.itemTouchable} activeOpacity={0.8}>
       <Animated.View
         style={[
           styles.itemContainer,
           { backgroundColor: COLORS.secondcolor, opacity: fadeAnim },
-          styles.shadow,
         ]}
       >
         <View style={[styles.circle, { backgroundColor: COLORS.subtitle }]}>
           <Text style={[styles.number, { color: COLORS.card }]}>{index + 1}</Text>
         </View>
-        <View style={{ flex: 1 }}>
-          <Text
-            style={[styles.itemText, { color: COLORS.text }]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {item.title}
-          </Text>
-          {item.author ? (
-            <Text
-              style={[styles.authorText, { color: COLORS.inactive }]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {item.author}
-            </Text>
-          ) : null}
-        </View>
+        <Text style={[styles.itemText, { color: COLORS.text }]}>{item.title}</Text>
       </Animated.View>
     </TouchableOpacity>
   );
@@ -114,35 +87,13 @@ export default function HymnsListScreen() {
   const COLORS = colorScheme === 'dark' ? DARK_COLORS : LIGHT_COLORS;
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(categoryFromParams || 'all');
   const [allHymns, setAllHymns] = useState<Hymn[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const headerTranslateY = useRef(new Animated.Value(0)).current;
   const scrollOffsetY = useRef(0);
-  const categoryScrollRef = useRef<ScrollView>(null);
 
-  // Debounce search input for performance
-  const debouncedSetSearch = useCallback(
-    debounce((query) => {
-      setDebouncedSearch(query);
-    }, 300),
-    []
-  );
-
-  const onChangeSearch = (text: string) => {
-    setSearchQuery(text);
-    debouncedSetSearch(text);
-  };
-
-  // Scroll category filter so selected category is visible
-  const onCategoryPress = (catId: string, index: number) => {
-    setSelectedCategory(catId);
-    categoryScrollRef.current?.scrollTo({ x: index * 100 - 50, animated: true });
-  };
-
-  // Fetch hymns data once
   useEffect(() => {
     const fetchHymns = async () => {
       try {
@@ -164,23 +115,20 @@ export default function HymnsListScreen() {
     fetchHymns();
   }, []);
 
-  // Update selected category from params if changed
   useEffect(() => {
     setSelectedCategory(categoryFromParams || 'all');
   }, [categoryFromParams]);
 
-  // Filter hymns based on category and debounced search query
   const filteredHymns = useMemo(() => {
-    const query = debouncedSearch.trim().toLowerCase();
+    const query = searchQuery.trim().toLowerCase();
     return allHymns.filter((hymn) => {
       const matchCategory =
         selectedCategory === 'all' || hymn.category?.includes(selectedCategory);
       const matchSearch = hymn.title.toLowerCase().includes(query);
       return matchCategory && matchSearch;
     });
-  }, [allHymns, debouncedSearch, selectedCategory]);
+  }, [allHymns, searchQuery, selectedCategory]);
 
-  // Animate header hide/show on scroll with shadow
   const onScroll = useCallback((event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const currentOffset = event.nativeEvent.contentOffset.y;
     const diff = currentOffset - scrollOffsetY.current;
@@ -212,26 +160,10 @@ export default function HymnsListScreen() {
             transform: [{ translateY: headerTranslateY }],
             backgroundColor: COLORS.card,
             borderBottomColor: COLORS.active,
-            // Add shadow to header for depth
-            ...Platform.select({
-              ios: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-              },
-              android: {
-                elevation: 6,
-              },
-            }),
           },
         ]}
       >
-        <Text
-          style={[styles.heading, { color: COLORS.text }]}
-          accessibilityRole="header"
-          accessibilityLevel={1}
-        >
+        <Text style={[styles.heading, { color: COLORS.text }]}>
           {selectedCategory.toUpperCase()} HYMNS
         </Text>
 
@@ -244,38 +176,21 @@ export default function HymnsListScreen() {
               { backgroundColor: COLORS.secondcolor, color: COLORS.text },
             ]}
             value={searchQuery}
-            onChangeText={onChangeSearch}
-            accessible={true}
-            accessibilityLabel="Search hymns"
-            accessibilityHint="Enter text to search hymns by title"
-            returnKeyType="search"
-            autoCorrect={false}
-            autoCapitalize="none"
+            onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => {
-                setSearchQuery('');
-                setDebouncedSearch('');
-              }}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} // larger tap area
-              accessibilityRole="button"
-              accessibilityLabel="Clear search text"
-              style={{ paddingHorizontal: 8 }}
-            >
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
               <Text style={[styles.clearText, { color: COLORS.subtitle }]}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
 
         <ScrollView
-          ref={categoryScrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryFilter}
-          accessibilityRole="tablist"
         >
-          {categories.map((cat, index) => {
+          {categories.map((cat) => {
             const isActive = selectedCategory === cat.id;
             return (
               <TouchableOpacity
@@ -288,10 +203,7 @@ export default function HymnsListScreen() {
                     borderColor: COLORS.active,
                   },
                 ]}
-                onPress={() => onCategoryPress(cat.id, index)}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: isActive }}
-                accessibilityLabel={`Filter hymns by ${cat.label}`}
+                onPress={() => setSelectedCategory(cat.id)}
               >
                 <Text
                   style={{
@@ -309,42 +221,37 @@ export default function HymnsListScreen() {
       </Animated.View>
 
       {/* LIST */}
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.subtitle} />
-          <Text style={[styles.loadingText, { color: COLORS.subtitle }]}>
-            Loading hymns...
-          </Text>
-        </View>
-      ) : (
-        <FlatList
-          data={filteredHymns}
-          keyExtractor={(item) => item._id}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
-          showsVerticalScrollIndicator={true}
-          contentContainerStyle={{
-            paddingTop: HEADER_HEIGHT + 16,
-            paddingBottom: 80,
-            paddingHorizontal: 16,
-          }}
-          renderItem={({ item, index }) => (
-            <HymnListItem
-              item={item}
-              index={index}
-              COLORS={COLORS}
-              onPress={() => router.push(`/hymns/${selectedCategory}/${item._id}`)}
-            />
-          )}
-          ListEmptyComponent={() => (
+      <FlatList
+        data={filteredHymns}
+        keyExtractor={(item) => item._id}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={true}
+        contentContainerStyle={{
+          paddingTop: HEADER_HEIGHT + 16,
+          paddingBottom: 80,
+          paddingHorizontal: 16,
+        }}
+        renderItem={({ item, index }) => (
+          <HymnListItem
+            item={item}
+            index={index}
+            COLORS={COLORS}
+            onPress={() => router.push(`/hymns/${selectedCategory}/${item._id}`)}
+          />
+        )}
+        ListEmptyComponent={() =>
+          isLoading ? (
             <View style={{ marginTop: 100, alignItems: 'center' }}>
-              <Text style={{ color: COLORS.subtitle, fontSize: 16 }}>
-                No hymns found.
-              </Text>
+              <Text style={{ color: COLORS.subtitle, fontSize: 16 }}>Loading hymns...</Text>
             </View>
-          )}
-        />
-      )}
+          ) : (
+            <View style={{ marginTop: 100, alignItems: 'center' }}>
+              <Text style={{ color: COLORS.subtitle, fontSize: 16 }}>No hymns found.</Text>
+            </View>
+          )
+        }
+      />
     </View>
   );
 }
@@ -384,11 +291,9 @@ const styles = StyleSheet.create({
     height: 42 * scale,
     flex: 1,
     fontSize: RFValue(15, SCREEN_HEIGHT),
-    borderRadius: 10,
-    padding: 5,
-    alignItems: 'center',
   },
   clearText: {
+    paddingLeft: 10,
     fontSize: RFValue(16, SCREEN_HEIGHT),
   },
   categoryFilter: {
@@ -414,6 +319,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12 * scale,
     borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   circle: {
     width: 30 * scale,
@@ -432,27 +342,5 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     fontWeight: '500',
     lineHeight: RFValue(20, SCREEN_HEIGHT),
-  },
-  authorText: {
-    fontSize: RFValue(12, SCREEN_HEIGHT),
-    fontWeight: '400',
-    lineHeight: RFValue(16, SCREEN_HEIGHT),
-    marginTop: 2,
-    fontStyle: 'italic',
-  },
-  loadingContainer: {
-    marginTop: 100,
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 8,
-    fontSize: 16,
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
 });

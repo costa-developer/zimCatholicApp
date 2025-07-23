@@ -72,7 +72,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.light.background} />
       <ImageBackground
-        source={require('../../assets/images/qq.jpeg')}
+        source={require('../../assets/images/b.jpg')}
         style={styles.background}
         imageStyle={{ resizeMode: 'cover' }}
       >
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject, 
-    backgroundColor: 'rgba(50, 26, 12, 0.5)', 
+    backgroundColor: 'rgba(50, 26, 12, 0.8)', 
     zIndex: 1,
   },
   innerWrapper: {

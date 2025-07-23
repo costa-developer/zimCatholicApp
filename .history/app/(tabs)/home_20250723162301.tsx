@@ -72,7 +72,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={Colors.light.background} />
       <ImageBackground
-        source={require('../../assets/images/qq.jpeg')}
+        source={require('../../assets/images/b.jpg')}
         style={styles.background}
         imageStyle={{ resizeMode: 'cover' }}
       >

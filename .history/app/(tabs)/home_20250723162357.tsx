@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject, 
-    backgroundColor: 'rgba(50, 26, 12, 0.5)', 
+    backgroundColor: 'rgba(50, 26, 12, 0.7)', 
     zIndex: 1,
   },
   innerWrapper: {
