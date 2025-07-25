@@ -1,54 +1,93 @@
-<<<<<<< HEAD
-# ZimCatholic
-=======
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+````md
+# 🙏 ZimCatholic App
 
-## Get started
+**ZimCatholic** is a mobile app built with React Native and Expo to provide Zimbabwean Catholics easy access to hymns, prayers, and daily readings — all in one beautiful, responsive, and spiritually enriching experience.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## 📱 Features
 
-2. Start the app
+- 🎵 **Catholic Songs (Nziyo dzeKereke)**  
+  Access a collection of traditional and modern hymns used in Zimbabwean Catholic churches.
 
-   ```bash
-   npx expo start
-   ```
+- 🙏 **Prayers (Minamato)**  
+  A curated list of popular prayers in Shona and English.
 
-In the output, you'll find options to open the app in a
+- 📖 **Daily Readings (Verenga Bhaibheri)**  
+  Read daily scriptures and stay spiritually engaged.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- ✝️ **Beautiful UI + Local Culture**  
+  Inspired by Zimbabwean Catholic traditions and designed with simplicity and reverence in mind.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 🚀 Getting Started
 
-When you're ready, run:
+### 1. Install Dependencies
 
 ```bash
-npm run reset-project
+npm install
+````
+
+### 2. Start the App
+
+```bash
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+You can then launch it in:
 
-## Learn more
+* 📱 Expo Go (Android/iOS)
+* 📱 Emulator (Android Studio or iOS Simulator)
+* 🌐 Web browser (development preview)
 
-To learn more about developing your project with Expo, look at the following resources:
+---
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 🛠 Tech Stack
 
-## Join the community
+* [React Native](https://reactnative.dev/)
+* [Expo](https://expo.dev/)
+* [TypeScript](https://www.typescriptlang.org/)
+* [React Navigation / Expo Router](https://expo.github.io/router/)
+* [Google Fonts via Expo](https://docs.expo.dev/guides/using-custom-fonts/)
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
->>>>>>> efe4524 (Initial commit)
+## 🔖 Folder Structure
+
+```bash
+├── app/               # Main screens and routes
+├── assets/            # Fonts, icons, and images
+├── constants/         # Colors, strings, etc.
+├── components/        # Reusable UI elements
+├── types/             # TypeScript types
+├── README.md
+```
+
+---
+
+## 🤝 Contribution
+
+We're open to improvements, bug fixes, and content suggestions!
+To contribute:
+
+1. Fork the repo
+2. Create a new branch
+3. Submit a pull request
+
+---
+
+## 🙌 Credits
+
+Developed with ❤️ by Catholic developers for the Zimbabwean community.
+
+---
+
+## 📜 License
+
+MIT License. Feel free to use and adapt with attribution.
+
+```
+
+---
