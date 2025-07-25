@@ -1,6 +1,5 @@
 
-````md
-# 🙏 ZimCatholic App
+## 🙏 ZimCatholic App
 
 **ZimCatholic** is a mobile app built with React Native and Expo to provide Zimbabwean Catholics easy access to hymns, prayers, and daily readings — all in one beautiful, responsive, and spiritually enriching experience.
 
@@ -89,5 +88,3 @@ Developed with ❤️ by Catholic developers for the Zimbabwean community.
 MIT License. Feel free to use and adapt with attribution.
 
 ```
-
----
