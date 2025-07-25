@@ -1,6 +1,6 @@
 export const Colors = {
   light: {
-    background: '#1C1C1C',
+    background: '#3A1F0B', 
     card: '#321a0c',
     icon: '#1f1007',
     secondcolor: '#492916',
@@ -10,7 +10,7 @@ export const Colors = {
     inactive: '#999',
   },
   dark: {
-    background: '#000000',
+    background: '#3A1F0B',     
     card: '#222222',
     icon: '#111111',
     secondcolor: '#333333',

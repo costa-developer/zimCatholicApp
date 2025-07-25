@@ -1,3 +1,4 @@
+// Imports for Sanity client, types, icons, routing, and React Native components
 import { sanity } from '@/lib/sanity';
 import { Hymn } from '@/types/hymn';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,23 +14,17 @@ import {
   View,
 } from 'react-native';
 
-const COLORS = {
-  background: '#1C1C1C',
-  card: '#321a0c',
-  text: '#fff3e0',
-  subtitle: '#c59152',
-  secondcolor: '#492916',
-  active: '#FFD700',
-};
-
+// Main detail screen component for rendering hymn lyrics
 export default function HymnDetailScreen() {
-  // Get category and hymnId from URL params
+  // Retrieve route params (category and hymn ID)
   const { category, hymnId } = useLocalSearchParams<{ category: string; hymnId: string }>();
   const router = useRouter();
 
+  // Local state for fetched hymn data and loading indicator
   const [hymn, setHymn] = useState<Hymn | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch hymn by ID on component mount
   useEffect(() => {
     if (!hymnId) return;
 
@@ -41,6 +36,7 @@ export default function HymnDetailScreen() {
       category
     }`;
 
+    // Sanity client fetch
     sanity
       .fetch(query, { id: hymnId })
       .then((data) => {
@@ -53,6 +49,7 @@ export default function HymnDetailScreen() {
       .finally(() => setLoading(false));
   }, [hymnId]);
 
+  // Return user to previous hymn category screen
   const handleGoBack = () => {
     router.replace({
       pathname: '/hymns', 
@@ -60,17 +57,19 @@ export default function HymnDetailScreen() {
     });
   };
 
+  // Loading state display while fetching data
   if (loading) {
     return (
-      <View style={[styles.screenContainer, { backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.screenContainer, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ color: COLORS.text }}>Loading...</Text>
       </View>
     );
   }
 
+  // Error state if no hymn found
   if (!hymn) {
     return (
-      <View style={[styles.screenContainer, { backgroundColor: COLORS.background, justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={[styles.screenContainer, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={{ color: COLORS.active, fontSize: 24, fontWeight: 'bold' }}>Hymn not found.</Text>
         <TouchableOpacity
           style={[styles.backButton, { backgroundColor: COLORS.secondcolor, borderColor: COLORS.active }]}
@@ -86,10 +85,12 @@ export default function HymnDetailScreen() {
     );
   }
 
+  // Render hymn content
   return (
-    <View style={[styles.screenContainer, { backgroundColor: COLORS.background }]}>
+    <View style={styles.screenContainer}>
+      {/* Floating back button (top left corner) */}
       <TouchableOpacity
-        style={[styles.backButtonTop, { backgroundColor: COLORS.secondcolor, shadowColor: COLORS.secondcolor }]}
+        style={styles.backButtonTop}
         onPress={handleGoBack}
         activeOpacity={0.7}
         accessibilityRole="button"
@@ -98,21 +99,30 @@ export default function HymnDetailScreen() {
         <Ionicons name="arrow-back" size={24} color={COLORS.text} />
       </TouchableOpacity>
 
+      {/* Main scrollable content area */}
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={[styles.title, { color: COLORS.text }]} accessibilityRole="header">
+        {/* Hymn title */}
+        <Text style={styles.title} accessibilityRole="header">
           {hymn.title}
         </Text>
-        <Text style={[styles.author, { color: COLORS.subtitle }]}>
+
+        {/* Author (if available) */}
+        <Text style={styles.author}>
           by {hymn.author || 'Unknown'}
         </Text>
 
-        <View style={styles.lyricsContainer} accessible={true} accessibilityLabel={`Lyrics for ${hymn.title}`}>
-          <Text style={[styles.lyrics, { color: COLORS.text }]} selectable>
+        {/* Hymn lyrics */}
+        <View
+          style={styles.lyricsContainer}
+          accessible={true}
+          accessibilityLabel={`Lyrics for ${hymn.title}`}
+        >
+          <Text style={styles.lyrics} selectable>
             {hymn.lyrics}
           </Text>
         </View>
@@ -121,73 +131,88 @@ export default function HymnDetailScreen() {
   );
 }
 
+// App-wide color scheme used for styling
+const COLORS = {
+  background: '#2e1a10',
+  card: '#3e2616', 
+  secondcolor: '#5a3b23',
+  text: '#fff3e0', 
+  subtitle: '#e0a060', 
+  active: '#f9cc48',     
+};
+
+// Stylesheet scoped to this screen only
 const styles = StyleSheet.create({
   screenContainer: {
     flex: 1,
     paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 50,
+    backgroundColor: COLORS.background,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
   },
   content: {
-    paddingBottom: 48,
-    paddingTop: 16,
+    paddingBottom: 60,
+    paddingTop: 20,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '900',
-    marginBottom: 12,
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginBottom: 10,
     textAlign: 'center',
-    letterSpacing: 1,
+    color: COLORS.text,
+    letterSpacing: 1.2,
   },
   author: {
-    fontSize: 18,
+    fontSize: 16,
     fontStyle: 'italic',
-    marginBottom: 28,
     textAlign: 'center',
-    letterSpacing: 0.5,
+    color: COLORS.subtitle,
+    marginBottom: 24,
   },
   lyricsContainer: {
     backgroundColor: COLORS.card,
     borderRadius: 16,
-    padding: 20,
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 5,
   },
   lyrics: {
-    fontSize: 20,
-    lineHeight: 36,
-    whiteSpace: 'pre-wrap', // preserve formatting
+    fontSize: 18,
+    lineHeight: 30,
     fontWeight: '400',
+    color: COLORS.text,
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 28,
-    borderRadius: 30,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 24,
     borderWidth: 1,
-    marginTop: 12,
+    borderColor: COLORS.active,
+    marginTop: 20,
+    backgroundColor: COLORS.secondcolor,
   },
   backButtonTop: {
     position: 'absolute',
     top: Platform.OS === 'android' ? StatusBar.currentHeight! + 8 : 30,
-    left: 12,
-    zIndex: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(73, 41, 22, 0.8)',
+    left: 16,
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(90, 59, 35, 0.8)',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#492916',
+    shadowColor: COLORS.secondcolor,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.6,
-    shadowRadius: 4,
-    elevation: 6,
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 4,
   },
 });
